@@ -2,7 +2,7 @@
 
 out vec4 gl_FragColor;
 
-const vec2 iResolution = vec2(1920.,1080.);
+const vec2 iResolution = vec2(1920, 1080);
 
 const vec3 c = vec3(1.,0.,-1.);
 const float pi = acos(-1.);
@@ -11,6 +11,9 @@ const float fsaa = 16;
 
 const int npts = 168;
 const float path[npts] = float[npts](-0.500,0.145,-0.500,-0.145,-0.500,-0.145,-0.395,-0.145,-0.395,-0.145,-0.395,-0.042,-0.395,-0.042,-0.362,-0.042,-0.362,-0.042,-0.362,-0.145,-0.362,-0.145,-0.163,-0.145,-0.163,-0.145,-0.163,0.145,-0.163,0.145,-0.246,0.145,-0.246,0.145,-0.246,0.048,-0.246,0.048,-0.279,0.048,-0.279,0.048,-0.279,0.145,-0.279,0.145,-0.500,0.145,-0.131,0.145,-0.131,-0.145,-0.131,-0.145,-0.048,-0.145,-0.048,-0.145,-0.048,-0.042,-0.048,-0.042,-0.015,-0.042,-0.015,-0.042,-0.015,-0.145,-0.015,-0.145,0.300,-0.145,0.300,-0.145,0.300,-0.052,0.300,-0.052,0.184,-0.052,0.184,-0.052,0.184,-0.007,0.184,-0.007,0.034,0.024,0.034,0.024,0.184,0.055,0.184,0.055,0.184,0.145,0.184,0.145,-0.131,0.145,0.217,0.145,0.217,0.041,0.217,0.041,0.136,0.024,0.136,0.024,0.217,0.008,0.217,0.008,0.217,-0.032,0.217,-0.032,0.333,-0.032,0.333,-0.032,0.333,-0.145,0.333,-0.145,0.500,-0.145,0.500,-0.145,0.500,0.145,0.500,0.145,0.333,0.145,0.333,0.145,0.333,0.048,0.333,0.048,0.300,0.048,0.300,0.048,0.300,0.145,0.300,0.145,0.217,0.145,-0.048,0.083,-0.015,0.083,-0.015,0.083,-0.015,0.048,-0.015,0.048,-0.048,0.048,-0.048,0.048,-0.048,0.083);
+
+const int npts2 = 144;
+const float path2[npts2] = float[npts2](-0.500,0.145,-0.500,-0.145,-0.500,-0.145,-0.182,-0.145,-0.182,-0.145,-0.182,0.145,-0.182,0.145,-0.320,0.145,-0.320,0.145,-0.320,-0.025,-0.320,-0.025,-0.285,-0.025,-0.285,-0.025,-0.285,-0.042,-0.285,-0.042,-0.381,-0.042,-0.381,-0.042,-0.381,-0.025,-0.381,-0.025,-0.345,-0.025,-0.345,-0.025,-0.345,0.145,-0.345,0.145,-0.500,0.145,-0.158,0.145,-0.158,-0.145,-0.158,-0.145,-0.070,-0.145,-0.070,-0.145,-0.070,0.044,-0.070,0.044,-0.046,0.044,-0.046,0.044,-0.046,-0.145,-0.046,-0.145,0.154,-0.145,0.154,-0.145,0.154,0.145,0.154,0.145,0.065,0.145,0.065,0.145,0.065,-0.034,0.065,-0.034,0.041,-0.034,0.041,-0.034,0.041,0.145,0.041,0.145,-0.158,0.145,0.179,0.145,0.179,-0.145,0.179,-0.145,0.500,-0.145,0.500,-0.145,0.500,0.003,0.500,0.003,0.328,0.003,0.328,0.003,0.328,-0.034,0.328,-0.034,0.304,-0.034,0.304,-0.034,0.304,0.044,0.304,0.044,0.328,0.044,0.328,0.044,0.328,0.019,0.328,0.019,0.500,0.019,0.500,0.019,0.500,0.145,0.500,0.145,0.179,0.145);
 
 void rand(in vec2 x, out float n)
 {
@@ -38,7 +41,7 @@ void lcfnoise(in vec2 t, out float n)
     n = 1.-2.*abs(.5-abs(n));
 }
 
-#define mf(mfid, lfid) void mfid(in vec2 x, in float d, in float b, in float e, out float n){n = 0.;float a = 1., nf = 0., buf;for(float f = d; f<b; f *= 2.){lfid(f*x+.1*a, buf);n += a*buf;a *= e;nf += 1.;}n *= (1.-e)/(1.-pow(e, nf));} #CRLF
+#define mf(mfid, lfid) void mfid(in vec2 x, in float d, in float b, in float e, out float n){n = 0.;float a = 1., nf = 0., buf;for(float f = d; f<b; f *= 2.){lfid(f*x+.1*a, buf);n += a*buf;a *= e;nf += 1.;}n *= (1.-e)/(1.-pow(e, nf));}#CRLF
 mf(mfnoise, lfnoise)
 mf(mcfnoise, lcfnoise)
 
@@ -130,6 +133,30 @@ void dnr4(in vec2 x, out float ret)
     ret = mix(ret, -ret, mod(n, 2.));
 }
 
+void dunc(in vec2 x, out float ret)
+{
+    ret = 1.;
+    float da;
+
+    float n = 0.;
+    for(int i=0; i<npts2/4; ++i)
+    {
+        vec2 ptsi = vec2(path2[4*i], path2[4*i+1]),
+            ptsip1 = vec2(path2[4*i+2], path2[4*i+3]),
+            k = x-ptsi, 
+            d = ptsip1-ptsi;
+        
+        float beta = k.x/d.x,
+            alpha = d.y*k.x/d.x-k.y;
+        
+        n += step(.0, beta)*step(beta, 1.)*step(0., alpha);
+        dlinesegment(x, ptsi, ptsip1, da);
+        ret = min(ret, da);
+    }
+    
+    ret = mix(ret, -ret, mod(n, 2.));
+}
+
 void stroke(in float d0, in float s, out float d)
 {
     d = abs(d0)-s;
@@ -161,8 +188,8 @@ void main_scene(in vec3 x, out vec2 sdf)
     // Steel construction
     // Sides
     vec3 y = vec3(mod(x.z,2.)-1., x.y, abs(x.x)-.89);
-    dbox3(y, vec3(.01,1.,.1), d);
-    dbox3(vec3(y.xy, abs(y.z)-.1), vec3(.1,1.,.01), da);
+    dbox3(y, vec3(.01,2.2,.1), d);
+    dbox3(vec3(y.xy, abs(y.z)-.1), vec3(.1,2.2,.01), da);
     d = min(d,da);
     // Top
     dbox3(vec3(x.x,x.y-.86, abs(mod(x.z,2.)-1.)-.07), vec3(.78,.05, .01), da);
@@ -190,6 +217,27 @@ void main_scene(in vec3 x, out vec2 sdf)
     d = 0.;
     mfnoise(x.xz, 8.,800., .15, d);
     add(sdf, vec2(y0+.85-.005*d, 2.), sdf);
+    
+    // Cable
+    d = length(vec2(abs(x.x)-.18, x.y)-c.yx*.8+.1*abs(sin(.5*pi*x.z-.5*pi))*c.yx)-.006;
+    add(sdf, vec2(d, 4.), sdf);
+    
+    // Cable holder
+    d = length(vec2(abs(x.x)-.18, x.y)-c.yx*.8)-.01;
+    d = abs(d)-.01;
+    zextrude(mod(x.z,2.)-1., d, .005, d);
+    add(sdf, vec2(d, 3.), sdf);
+    
+//     // Light holder
+//     dbox3(x+2.*c.yyx-.9*c.yxy, vec3(.025,.05,.5), d);
+//     add(sdf, vec2(d, 3.), sdf);
+//     
+//     // Light
+//     d = length(x.xy-.8375*c.yx)-.0125;
+//     zextrude(x.z+2., d, 1., d);
+//     add(sdf, vec2(d, 5.), sdf);
+
+//     add(sdf, vec2(length(x+2.*c.yyx)-.1), sdf);
 }
 
 void tiles_scene(in vec3 x, out vec2 sdf)
@@ -229,7 +277,7 @@ void rust_scene(in vec3 x, out vec2 sdf)
     sdf.y = 1.;
 }
 
-#define normal(o, t)void o(in vec3 x, out vec3 n, in float dx){vec2 s, na;t(x,s);t(x+dx*c.xyy, na);n.x = na.x;t(x+dx*c.yxy, na);n.y = na.x;t(x+dx*c.yyx, na);n.z = na.x;n = normalize(n-s.x);} #CRLF
+#define normal(o, t)void o(in vec3 x, out vec3 n, in float dx){vec2 s, na;t(x,s);t(x+dx*c.xyy, na);n.x = na.x;t(x+dx*c.yxy, na);n.y = na.x;t(x+dx*c.yyx, na);n.z = na.x;n = normalize(n-s.x);}#CRLF  
 normal(main_normal, main_scene)
 normal(tiles_normal, tiles_scene)
 normal(rust_normal, rust_scene)
@@ -323,6 +371,21 @@ void graffiti_texture(in vec2 uv, inout vec3 col)
     col = 2.*sqrt(col);
 }
 
+void unc_texture(in vec2 uv, inout vec3 col)
+{
+    float na,d;
+    
+    mfnoise(uv, 1., 1000., .05, na);
+    
+    dunc(vec2(1.,.5)*uv+.05*na, d);
+    d -= .005;
+    col = mix(col*col/4., c.xxx, sm(d));
+    col = mix(col, c.yyy, sm(abs(d)-.01));
+//     col = mix(col, 2.*vec3(0.87,0.21,0.62), sm(abs(abs(d)-.01)-.005));
+    
+    col = 2.*sqrt(col);
+}
+
 void analytical_box(in vec3 o, in vec3 dir, in vec3 size, out float d)
 {
     vec3 tlo = min((size-o)/dir,(-size-o)/dir); // Select 3 visible planes
@@ -366,7 +429,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
         x = o + d * dir;
         main_scene(x,s);
         if(s.x < 1.e-4) break;
-        d += s.x;
+        d += min(s.x,1.e-1);
     }
     
     d0 = d;
@@ -376,9 +439,9 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     if(i<N)
     {
         main_normal(x, n, 1.e-4);
-        l = c.yyz;
+        l = c.yyx;
         
-        if(s.y == 2.) // Glowing sphere
+        if(s.y == 2.) // Water
         {
             re = 1.;
             
@@ -386,12 +449,10 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
             c2 = .1*c2 
                 + .2*c2*dot(l, n)
                 + 4.4*c2*pow(abs(dot(reflect(l,n),dir)),2.);
-            
-//             for(int j = 0; j<2; ++j)
-//             {
+
                 o = x;
                 dir = reflect(dir, n);
-                d = 1.e-1;
+                d = 2.e-2;
                 
                 for(i = 0; i<N; ++i)
                 {
@@ -407,7 +468,6 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
                 c2 = .1*c2 
                     + .2*c2*dot(l, n)
                     + 2.5*c2*pow(abs(dot(reflect(l,n),dir)),2.);
-//                 c2 = mix(c2, c1, .3);
 //             }
         }
         
@@ -435,6 +495,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
                     tiles_normal(4.*x,n,5.e-4);
                     tiles_texture(4.*x.zy, c1);
                     graffiti_texture(x.zy+2.2*c.xy*sign(x.x)+.45*c.yx, c1);
+                    unc_texture((x.zy+.39*c.xy*sign(x.x))+.45*c.yx, c1);
 //                     c1 = sqrt(c1);
                     c1 = .1*c1 
                         + .2*c1*dot(l, n)
@@ -524,11 +585,24 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
                 + .2*col*dot(l, n)
                 + 1.5*col*pow(abs(dot(reflect(l,n),dir)),6.);
         }
+        else if(s.y == 4.) // cables
+        {
+            col = vec3(0.56,0.56,0.49);
+//             col = c.xyy;
+            col = .1*col 
+                + .2*col*dot(l, n)
+                + 1.5*col*pow(abs(dot(reflect(l,n),dir)),2.);
+        }
+//         else if(s.y == 5.) // Lamp
+//         {
+//             col = 4.*vec3(0.92,0.78,0.34);
+//             col = .1*col 
+//                 + .2*col*dot(l, n)
+//                 + 1.5*col*pow(abs(dot(reflect(l,n),dir)),2.);
+//         }
         if(re == 1.) // Plain reflection
         {
             col = mix(col, .2*c.yyx, .25);
-//             col = c2;
-//             col *= col;
         }
     }
     
@@ -536,8 +610,34 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord)
     
     col = mix(col, c.yyy, sm((-d0+6.)/10000.));
     
-    col *= 2.*col;
+    col *= 1.25*col;
     col = mix(mix(col, sqrt(col)*vec3(0.92,0.78,0.34), .5), col, clamp(length(x-o0)/3.,0.,1.));
+    
+//     if(s.y == 5.) 
+//     {
+//         col = c.xxx;
+//     }
+    
+    // Soft shadow
+    o = x;
+    dir = normalize(-2.*c.yyx-x);
+    d = 1.e-2;
+    
+    for(i = 0; i<N; ++i)
+    {
+        x = o + d * dir;
+        main_scene(x,s);
+//         s.x -= .01; // Soften shadow
+        if(s.x < 1.e-4) break;
+        d += s.x;
+    }
+    
+    if(d < length(-2.*c.yyx-o)) // We are in the dark
+        col *= .4;
+    
+    // Ambient occlusion
+
+//     col = mix(col, vec3(0.98,0.65,0.23), col);
     
     fragColor = vec4(clamp(col,0.,1.),1.);
 }
