@@ -2,22 +2,12 @@
 
 out vec4 gl_FragColor;
 
-uniform float iTime;
-uniform vec2 iResolution;
-
-uniform float iFader0;
-uniform float iFader1;
-uniform float iFader2;
-uniform float iFader3;
-uniform float iFader4;
-uniform float iFader5;
-uniform float iFader6;
-uniform float iFader7;
+const vec2 iResolution = vec2(1920.,1080.);
 
 const vec3 c = vec3(1.,0.,-1.);
 const float pi = acos(-1.);
 
-const float fsaa = 4;
+const float fsaa = 16;
 
 const int npts = 168;
 const float path[npts] = float[npts](-0.500,0.145,-0.500,-0.145,-0.500,-0.145,-0.395,-0.145,-0.395,-0.145,-0.395,-0.042,-0.395,-0.042,-0.362,-0.042,-0.362,-0.042,-0.362,-0.145,-0.362,-0.145,-0.163,-0.145,-0.163,-0.145,-0.163,0.145,-0.163,0.145,-0.246,0.145,-0.246,0.145,-0.246,0.048,-0.246,0.048,-0.279,0.048,-0.279,0.048,-0.279,0.145,-0.279,0.145,-0.500,0.145,-0.131,0.145,-0.131,-0.145,-0.131,-0.145,-0.048,-0.145,-0.048,-0.145,-0.048,-0.042,-0.048,-0.042,-0.015,-0.042,-0.015,-0.042,-0.015,-0.145,-0.015,-0.145,0.300,-0.145,0.300,-0.145,0.300,-0.052,0.300,-0.052,0.184,-0.052,0.184,-0.052,0.184,-0.007,0.184,-0.007,0.034,0.024,0.034,0.024,0.184,0.055,0.184,0.055,0.184,0.145,0.184,0.145,-0.131,0.145,0.217,0.145,0.217,0.041,0.217,0.041,0.136,0.024,0.136,0.024,0.217,0.008,0.217,0.008,0.217,-0.032,0.217,-0.032,0.333,-0.032,0.333,-0.032,0.333,-0.145,0.333,-0.145,0.500,-0.145,0.500,-0.145,0.500,0.145,0.500,0.145,0.333,0.145,0.333,0.145,0.333,0.048,0.333,0.048,0.300,0.048,0.300,0.048,0.300,0.145,0.300,0.145,0.217,0.145,-0.048,0.083,-0.015,0.083,-0.015,0.083,-0.015,0.048,-0.015,0.048,-0.048,0.048,-0.048,0.048,-0.048,0.083);
@@ -48,20 +38,7 @@ void lcfnoise(in vec2 t, out float n)
     n = 1.-2.*abs(.5-abs(n));
 }
 
-#define mf(mfid, lfid)\
-void mfid(in vec2 x, in float d, in float b, in float e, out float n)\
-{\
-    n = 0.;\
-    float a = 1., nf = 0., buf;\
-    for(float f = d; f<b; f *= 2.)\
-    {\
-        lfid(f*x+.1*a, buf);\
-        n += a*buf;\
-        a *= e;\
-        nf += 1.;\
-    }\
-    n *= (1.-e)/(1.-pow(e, nf));\
-}
+#define mf(mfid, lfid) void mfid(in vec2 x, in float d, in float b, in float e, out float n){n = 0.;float a = 1., nf = 0., buf;for(float f = d; f<b; f *= 2.){lfid(f*x+.1*a, buf);n += a*buf;a *= e;nf += 1.;}n *= (1.-e)/(1.-pow(e, nf));} #CRLF
 mf(mfnoise, lfnoise)
 mf(mcfnoise, lcfnoise)
 
@@ -252,19 +229,7 @@ void rust_scene(in vec3 x, out vec2 sdf)
     sdf.y = 1.;
 }
 
-#define normal(o, t) \
-void o(in vec3 x, out vec3 n, in float dx) \
-{ \
-    vec2 s, na; \
-    t(x,s); \
-    t(x+dx*c.xyy, na); \
-    n.x = na.x; \
-    t(x+dx*c.yxy, na); \
-    n.y = na.x; \
-    t(x+dx*c.yyx, na); \
-    n.z = na.x; \
-    n = normalize(n-s.x); \
-}
+#define normal(o, t)void o(in vec3 x, out vec3 n, in float dx){vec2 s, na;t(x,s);t(x+dx*c.xyy, na);n.x = na.x;t(x+dx*c.yxy, na);n.y = na.x;t(x+dx*c.yyx, na);n.z = na.x;n = normalize(n-s.x);} #CRLF
 normal(main_normal, main_scene)
 normal(tiles_normal, tiles_scene)
 normal(rust_normal, rust_scene)
@@ -333,7 +298,7 @@ void graffiti_texture(in vec2 uv, inout vec3 col)
     d /= 2.;
     
     col = mix(col*col/2., vec3(0.93,0.11,0.14), sm(dc-.15*na)); // red flames
-    col = mix(col, c.yyy/*vec3(0.98,0.68,0.11)*/, sm(dc-.25*na + .2)); // black flames
+    col = mix(col, c.yyy, sm(dc-.25*na + .2)); // black flames
     col = mix(col, vec3(1.00,0.95,0.46), sm(abs(dc-.25*na+.2)-.008)); // orange flame yellow border
     dc = abs(dc-.15*na)-.025; 
     col = mix(col, vec3(1.00,0.95,0.46), sm(dc)); // yellow outside
