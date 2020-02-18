@@ -19,10 +19,10 @@ import argparse
 
 from importlib.machinery import SourceFileLoader
 
-Rule = SourceFileLoader("Rule", "../minification/Rule.py").load_module()
-Token = SourceFileLoader("Token", "../minification/Token.py").load_module()
-GLSLLexer130 = SourceFileLoader("GLSLLexer130", "../minification/GLSLLexer130.py").load_module()
-Compressor = SourceFileLoader("Compressor", "../minification/Compressor.py").load_module()
+Rule = SourceFileLoader("Rule", "minification/Rule.py").load_module()
+Token = SourceFileLoader("Token", "minification/Token.py").load_module()
+GLSLLexer130 = SourceFileLoader("GLSLLexer130", "minification/GLSLLexer130.py").load_module()
+Compressor = SourceFileLoader("Compressor", "minification/Compressor.py").load_module()
 
 # Parse command line args
 parser = argparse.ArgumentParser(description='Team210 symbol packer.')
@@ -38,7 +38,7 @@ if rest == []:
     exit()
     
 file = rest[0]
-fragname = rest[0].replace('.frag','').replace(".","").replace("\\","")
+fragname = rest[0].split('\\')[-1].split('/')[-1].replace('.frag','').replace(".","").replace("\\","")
 input_source = "const char *" + fragname + "_source = \""
 with open(file, "rt") as f:
     input_source_ = f.read();
